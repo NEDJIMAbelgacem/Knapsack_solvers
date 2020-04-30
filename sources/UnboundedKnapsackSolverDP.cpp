@@ -1,9 +1,9 @@
-#include "KnapsackSolverDP.h"
+#include "UnboundedKnapsackSolverDP.h"
 
-KnapsackSolverDP::KnapsackSolverDP(std::vector<double> _weights, std::vector<double> _values)
+UnboundedKnapsackSolverDP::UnboundedKnapsackSolverDP(std::vector<double> _weights, std::vector<double> _values)
     : weights(_weights), values(_values) { }
 
-void KnapsackSolverDP::solve_impl(double sack_size, int start_index) {
+void UnboundedKnapsackSolverDP::solve_impl(double sack_size, int start_index) {
     std::pair<int, double> problem_instance = { start_index, sack_size };
     if (start_index >= weights.size()) {
         sub_problem_solution[problem_instance] = 0.0;
@@ -16,10 +16,10 @@ void KnapsackSolverDP::solve_impl(double sack_size, int start_index) {
     double sub_problem1_solution = sub_problem_solution[sub_problem1];
     
     // IN
-    std::pair<int, double> sub_problem2 = { start_index + 1, sack_size - weights[start_index]};
+    std::pair<int, double> sub_problem2 = { start_index, sack_size - weights[start_index]};
     double sub_problem2_solution = sub_problem1_solution;
     if (sack_size >= weights[start_index]) {
-        solve_impl(sack_size - weights[start_index], start_index + 1);
+        solve_impl(sack_size - weights[start_index], start_index);
         sub_problem2_solution = values[start_index] + sub_problem_solution[sub_problem2];
     }
 
@@ -34,33 +34,33 @@ void KnapsackSolverDP::solve_impl(double sack_size, int start_index) {
     }
 }
 
-void KnapsackSolverDP::solve(double sack_size) {
+void UnboundedKnapsackSolverDP::solve(double sack_size) {
     solve_impl(sack_size, 0);
 }
 
-double KnapsackSolverDP::get_solution(double sack_size) {
+double UnboundedKnapsackSolverDP::get_solution(double sack_size) {
     solve(sack_size);
     return sub_problem_solution[std::make_pair(0, sack_size)];
 }
 
-double KnapsackSolverDP::get_solution_total_weight(double sack_size) {
+double UnboundedKnapsackSolverDP::get_solution_total_weight(double sack_size) {
     double w = 0.0;
     for (int i : get_solution_items(sack_size)) w += weights[i];
     return w;
 }
 
-std::vector<int> KnapsackSolverDP::get_solution_items(double sack_size) {
+std::vector<int> UnboundedKnapsackSolverDP::get_solution_items(double sack_size) {
     solve(sack_size);
     return sub_problem_solution_v[std::make_pair(0, sack_size)];
 }
 
-std::vector<double> KnapsackSolverDP::get_solution_values(double sack_size) {
+std::vector<double> UnboundedKnapsackSolverDP::get_solution_values(double sack_size) {
     std::vector<double> res;
     for (int i : get_solution_items(sack_size)) res.push_back(values[i]);
     return res;
 }
 
-std::vector<double> KnapsackSolverDP::get_solution_weights(double sack_size) {
+std::vector<double> UnboundedKnapsackSolverDP::get_solution_weights(double sack_size) {
     std::vector<double> res;
     for (int i : get_solution_items(sack_size)) res.push_back(weights[i]);
     return res;

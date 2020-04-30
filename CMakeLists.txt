@@ -17,4 +17,6 @@ add_executable(proj_optim
     main.cpp
     sources/KnapsackSolverDP.cpp
     sources/KnapsackSolverBnB.cpp
+    sources/UnboundedKnapsackSolverBnB.cpp
+    sources/UnboundedKnapsackSolverDP.cpp
 )
