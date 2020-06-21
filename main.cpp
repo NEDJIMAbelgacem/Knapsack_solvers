@@ -12,6 +12,7 @@
 #include "KnapsackSolverBnB.h"
 #include "UnboundedKnapsackSolverBnB.h"
 #include "UnboundedKnapsackSolverDP.h"
+#include "KnapsackSolverGA.h"
 
 void test_dp(std::vector<double> items_weight, std::vector<double> values, double sack_weight) {
     KnapsackSolverDP solver(items_weight, values);
@@ -81,6 +82,24 @@ void test_unbounded_dp(std::vector<double> items_weight, std::vector<double> val
     std::cout << "Solution's total weight : " << solver.get_solution_total_weight(sack_weight) << std::endl;
 }
 
+void test_unbounded_GA(std::vector<double> items_weight, std::vector<double> values, double sack_weight) {
+    KnapsackSolverGA solver(items_weight, values);
+    solver.solve(sack_weight);
+    // double solution_value = solver.get_solution(sack_weight);
+    // std::cout << "Weights : "; 
+    // for (double w : items_weight) std::cout << w << " ";
+    // std::cout << std::endl;
+
+    // std::cout << "Values : ";
+    // for (double w : values) std::cout << w << " ";
+    // std::cout << std::endl;
+    // std::cout << "Solution : " << solution_value << std::endl;
+    // std::cout << "Items : ";
+    // for (double v : solver.get_solution_items(sack_weight)) std::cout << v << " ";
+    // std::cout << std::endl;
+    // std::cout << "Solution's total weight : " << solver.get_solution_total_weight(sack_weight) << std::endl;
+}
+
 void generate_random_instance(int nb_items, std::vector<double>& items_weight, std::vector<double>& values, double min_item_weight=10, double min_item_value=10, double max_item_weight=100, double max_item_value=100) {
     items_weight.clear();
     values.clear();
@@ -123,11 +142,12 @@ void read_data(std::string file_name, std::vector<double>& weights, std::vector<
 }
 
 int main(int argc, char** argv) {
+    srand(0);
     std::vector<double> items_weight, values;
     double sack_weight = 300;
     std::cout << "Entrez la taille d'instance : ";
-    int taille_instance;
-    std::cin >> taille_instance;
+    int taille_instance = 1000;
+    // std::cin >> taille_instance;
     if (argc < 2) generate_random_instance(taille_instance, items_weight, values, 10, 80);
     else read_data(std::string(argv[1]), items_weight, values, sack_weight);
 
@@ -142,11 +162,15 @@ int main(int argc, char** argv) {
     std::cout << "=================================================" << std::endl;
     std::cout << "Unbounded Bnanch & Bound test :" << std::endl;
     std::cout << "=================================================" << std::endl;
-    test_unbounded_bnb(items_weight, values, sack_weight);
+    // test_unbounded_bnb(items_weight, values, sack_weight);
     std::cout << "=================================================" << std::endl;
     std::cout << "Unbounded dynamic programming test :" << std::endl;
     std::cout << "=================================================" << std::endl;
-    test_unbounded_dp(items_weight, values, sack_weight);
+    // test_unbounded_dp(items_weight, values, sack_weight);
+    std::cout << "=================================================" << std::endl;
+    std::cout << "GA test :" << std::endl;
+    std::cout << "=================================================" << std::endl;
+    test_unbounded_GA(items_weight, values, sack_weight);
     std::cin.get();
     std::cin >> taille_instance;
 }
