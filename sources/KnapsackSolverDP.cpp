@@ -34,8 +34,9 @@ void KnapsackSolverDP::solve_impl(double sack_size, int start_index) {
     }
 }
 
-void KnapsackSolverDP::solve(double sack_size) {
+std::vector<int> KnapsackSolverDP::solve(double sack_size) {
     solve_impl(sack_size, 0);
+    return get_solution_items(sack_size);
 }
 
 double KnapsackSolverDP::get_solution(double sack_size) {

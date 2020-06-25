@@ -9,7 +9,7 @@ UnboundedKnapsackSolverBnB::UnboundedKnapsackSolverBnB(std::vector<double> _weig
         items_values_sum += values[i];
     }
     std::sort(items_sorted.begin(), items_sorted.end(), [&](int a, int b) {
-        return items_sorted[a] > items_sorted[b];
+        return values[a] > values[b];
     });
 }
 
@@ -36,12 +36,13 @@ std::pair<double, std::vector<int>> UnboundedKnapsackSolverBnB::solve_impl(doubl
     return sub_problem2;
 }
 
-void UnboundedKnapsackSolverBnB::solve(double sack_size) {
-    if (sub_problem_solution.find(sack_size) != sub_problem_solution.end()) return;
+std::vector<int> UnboundedKnapsackSolverBnB::solve(double sack_size) {
+    if (sub_problem_solution.find(sack_size) != sub_problem_solution.end()) return std::vector<int>(weights.size(), 0);
     double best = 0.0;
     auto [solution, solution_items] = solve_impl(sack_size, 0, 0.0, std::numeric_limits<int>::max(), best);
     sub_problem_solution[sack_size] = solution;
     sub_problem_solution_v[sack_size] = solution_items;
+    return solution_items;
 }
 
 double UnboundedKnapsackSolverBnB::get_solution(double sack_size) {

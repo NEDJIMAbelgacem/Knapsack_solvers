@@ -36,12 +36,13 @@ std::pair<double, std::vector<int>> KnapsackSolverBnB::solve_impl(double sack_si
     return sub_problem2;
 }
 
-void KnapsackSolverBnB::solve(double sack_size) {
-    if (sub_problem_solution.find(sack_size) != sub_problem_solution.end()) return;
+std::vector<int> KnapsackSolverBnB::solve(double sack_size) {
+    if (sub_problem_solution.find(sack_size) != sub_problem_solution.end()) return std::vector<int>();
     double best = 0.0;
     auto [solution, solution_items] = solve_impl(sack_size, 0, 0.0, items_values_sum, best);
     sub_problem_solution[sack_size] = solution;
     sub_problem_solution_v[sack_size] = solution_items;
+    return solution_items;
 }
 
 double KnapsackSolverBnB::get_solution(double sack_size) {

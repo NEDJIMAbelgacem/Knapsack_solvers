@@ -1,12 +1,14 @@
-#include "KnapsackSolverGA.h"
+#include "KnapsackSolverHybrid.h"
+
 #include <iostream>
+#include <cmath>
 
 #include "Utils.h"
 
-KnapsackSolverGA::KnapsackSolverGA(std::vector<double> _weights, std::vector<double> _values)
+KnapsackSolverHybrid::KnapsackSolverHybrid(std::vector<double> _weights, std::vector<double> _values)
     : weights(_weights), values(_values) { }
 
-std::vector<int> KnapsackSolverGA::generateRandomIndividual(double sack_size) {
+std::vector<int> KnapsackSolverHybrid::generateRandomIndividual(double sack_size) {
     std::vector<int> ind;
     for (int i = 0; i < weights.size(); ++i) {
         int max_item_count = sack_size / weights[i];
@@ -17,7 +19,7 @@ std::vector<int> KnapsackSolverGA::generateRandomIndividual(double sack_size) {
     return ind;
 }
 
-double KnapsackSolverGA::calculate_fittness(std::vector<int>& ind, double sack_size) {
+double KnapsackSolverHybrid::calculate_fittness(std::vector<int>& ind, double sack_size) {
     double weights_sum = 0;
     double values_sum = 0;
     for (int i = 0; i < ind.size(); ++i) {
@@ -28,7 +30,7 @@ double KnapsackSolverGA::calculate_fittness(std::vector<int>& ind, double sack_s
     return values_sum;
 }
 
-std::vector<double> KnapsackSolverGA::calculate_fittness(std::vector<std::vector<int>> population, double sack_size) {
+std::vector<double> KnapsackSolverHybrid::calculate_fittness(std::vector<std::vector<int>> population, double sack_size) {
     std::vector<double> fittness;
     fittness.reserve(population.size());
     for (std::vector<int>& ind : population) {
@@ -38,7 +40,7 @@ std::vector<double> KnapsackSolverGA::calculate_fittness(std::vector<std::vector
     return fittness;
 }
 
-std::vector<int> KnapsackSolverGA::selection(std::vector<double> fittness, int nb_selected, const std::vector<std::vector<int>>& population) {
+std::vector<int> KnapsackSolverHybrid::selection(std::vector<double> fittness, int nb_selected, const std::vector<std::vector<int>>& population) {
     std::vector<int> selected_individuals;
     for (int i = 0; i < fittness.size(); ++i) selected_individuals.push_back(i);
     // sort according to fittness (decreasing)
@@ -50,7 +52,7 @@ std::vector<int> KnapsackSolverGA::selection(std::vector<double> fittness, int n
     return selected_individuals;
 }
 
-std::vector<std::vector<int>> KnapsackSolverGA::crossover(const std::vector<std::vector<int>>& parents, int nb_offspring) {
+std::vector<std::vector<int>> KnapsackSolverHybrid::crossover(const std::vector<std::vector<int>>& parents, int nb_offspring) {
     std::vector<std::vector<int>> offspring;
     offspring.reserve(nb_offspring);
     int i = 0;
@@ -75,7 +77,7 @@ std::vector<std::vector<int>> KnapsackSolverGA::crossover(const std::vector<std:
     return offspring;
 }
 
-void KnapsackSolverGA::mutation(std::vector<std::vector<int>>& population) {
+void KnapsackSolverHybrid::mutation(std::vector<std::vector<int>>& population) {
     for (int i = 0; i < population.size(); ++i) {
         if ((double)rand()/RAND_MAX > mutation_rate) continue;
         int a = rand() % population[i].size();
@@ -100,11 +102,11 @@ void KnapsackSolverGA::mutation(std::vector<std::vector<int>>& population) {
     }
 }
 
-std::vector<int> KnapsackSolverGA::solve_impl(double sack_size) {
+std::vector<int> KnapsackSolverHybrid::solve_impl(double sack_size, int initial_population_size, int generations_count) {
     this->sack_size = sack_size;
     std::vector<std::vector<int>> population;
     std::vector<double> fittness;
-    for (int i = 0; i < population_size; ++i) population.push_back(generateRandomIndividual(sack_size));
+    for (int i = 0; i < initial_population_size; ++i) population.push_back(generateRandomIndividual(sack_size));
     std::vector<int> best_solution;
     double best_solution_fittness = 0.0f;
 
@@ -112,7 +114,6 @@ std::vector<int> KnapsackSolverGA::solve_impl(double sack_size) {
     int num_offspring = population.size() - num_parents;
     for (int i = 0; i < generations_count; ++i) {
         fittness = calculate_fittness(population, sack_size);
-        fittness_history.push_back(*std::max_element(fittness.begin(), fittness.end()));
         std::vector<std::vector<int>> parents;
         std::vector<int> selected_parents = selection(fittness, num_parents, population);
         if (fittness[selected_parents[0]] >= best_solution_fittness) {
@@ -123,12 +124,74 @@ std::vector<int> KnapsackSolverGA::solve_impl(double sack_size) {
         std::vector<std::vector<int>> offsprings = crossover(parents, num_offspring);
         mutation(offsprings);
         population = parents;
-        for (std::vector<int>& ind : offsprings) population.push_back(ind);
+        for (std::vector<int> indiv : offsprings) {
+            population.push_back(enhance_individual(indiv, max_SA_iterations_count));
+        }
     }
     return best_solution;
 }
 
-std::vector<int> KnapsackSolverGA::solve(double sack_size) {
-    std::vector<int> solution = solve_impl(sack_size);
+std::vector<int> KnapsackSolverHybrid::enhance_individual(std::vector<int>& state, int max_iterations_count) {
+    this->sack_size = sack_size;
+    std::vector<int> current_state = state;
+    double current_profit = calculate_total_values(current_state, weights, values);
+    std::vector<int> best_solution = current_state;
+    for (int i = 0; i < max_iterations_count; ++i) {
+        std::vector<int> neighbour_state = pick_random_neighbour(current_state);
+        double neighbour_profit = calculate_total_values(neighbour_state, weights, values);
+        if (neighbour_profit > current_profit) {
+            current_state = neighbour_state;
+            current_profit = neighbour_profit;
+        }
+    }
+    return best_solution;
+}
+
+std::vector<int> KnapsackSolverHybrid::solve(double sack_size) {
+    std::vector<int> solution = solve_impl(sack_size, population_size, generations_count);
     return solution;
+}
+
+std::vector<int> KnapsackSolverHybrid::pick_random_neighbour(std::vector<int> state) {
+    int x = rand() % state.size();
+    double capacity_left = sack_size - calculate_total_weight(state, weights, values);
+    std::vector<int> possible_items;
+    for (int i = 0; i < state.size(); ++i) {
+        if (capacity_left > weights[i]) {
+            possible_items.push_back(i);
+        }
+    } 
+    if (possible_items.size() != 0) {
+        int ind = rand() % possible_items.size();
+        state[possible_items[ind]] += rand() % (int)(capacity_left / weights[possible_items[ind]]) + 1;
+    } else {
+        std::vector<int> picked_items;
+        for (int i = 0; i < state.size(); ++i) {
+            if (state[i] > 0) {
+                picked_items.push_back(i);
+            }
+        }
+        if (picked_items.size() != 0) {
+            int ind = rand() % picked_items.size();
+            int n_items = rand() % state[picked_items[ind]] + 1;
+            state[picked_items[ind]] -= n_items;
+            capacity_left += n_items * weights[picked_items[ind]];
+            std::vector<int> valid_add;
+            do {
+                for (int i = 0; i < state.size(); ++i) {
+                    if (i == ind) continue;
+                    if (capacity_left >= weights[i]) {
+                        valid_add.push_back(i);
+                    }
+                }
+                if (valid_add.size() > 0) {
+                    int r = rand() % valid_add.size();
+                    int n = capacity_left / weights[valid_add[r]];
+                    state[valid_add[r]] += n;
+                    capacity_left -= n * weights[valid_add[r]];
+                }
+            } while (valid_add.size() != 0);
+        }
+    }
+    return state;
 }

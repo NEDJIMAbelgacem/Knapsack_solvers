@@ -10,19 +10,19 @@
 template<typename HeuristicFunc>
 class UnboundedKnapsackSolverHeur : public KnapsackSolverAbstract {
 private:
-    HeuristicFunc heuristic;
+    HeuristicFunc& heuristic;
     std::vector<double> weights;
     std::vector<double> values;
     std::map<double, std::vector<int>> sub_problem_solution_v;
     std::map<double, double> sub_problem_solution;
 public:
-    UnboundedKnapsackSolverHeur(std::vector<double> weights, std::vector<double> values, HeuristicFunc heristic_function) {
+    UnboundedKnapsackSolverHeur(std::vector<double> weights, std::vector<double> values, HeuristicFunc& heristic_function)
+    : heuristic(heristic_function) {
         this->weights = weights;
         this->values = values;
-        heuristic = heristic_function;
     }
     
-    virtual void solve(double sack_size) override {
+    virtual std::vector<int> solve(double sack_size) override {
         std::vector<int> valid_choices;
         for (int i = 0; i < values.size(); ++i) {
             if (weights[i] <= sack_size) valid_choices.push_back(i);
@@ -30,15 +30,21 @@ public:
         std::sort(valid_choices.begin(), valid_choices.end(), heuristic);
         std::vector<int> selected_items;
         double values_sum = 0.0;
-        for (int i : valid_choices) {
-            if (weights[i] > sack_size) continue;
+        for (int j = 0; j < valid_choices.size();) {
+            int i = valid_choices[j];
+            if (weights[i] > sack_size) {
+                ++j;
+                continue;
+            }
             selected_items.push_back(i);
             values_sum += values[i];
             sack_size -= weights[i];
         }
         sub_problem_solution_v[sack_size] = selected_items;
         sub_problem_solution[sack_size] = values_sum;
+        return selected_items;
     }
+    
     virtual double get_solution(double sack_size) override {
         if (sub_problem_solution_v.find(sack_size) == sub_problem_solution_v.end()) solve(sack_size);
         return sub_problem_solution[sack_size];

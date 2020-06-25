@@ -15,7 +15,7 @@ class KnapsackSolverDP : public KnapsackSolverAbstract {
 public:
     KnapsackSolverDP(std::vector<double> weights, std::vector<double> values);
     
-    virtual void solve(double sack_size) override;
+    virtual std::vector<int> solve(double sack_size) override;
     virtual double get_solution(double sack_size) override;
     virtual double get_solution_total_weight(double sack_size) override;
     virtual std::vector<int> get_solution_items(double sack_size) override;

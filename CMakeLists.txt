@@ -13,11 +13,73 @@ include_directories(
   include/
 )
 
-add_executable(proj_optim
-    main.cpp
+set(SOLVERS 
     sources/KnapsackSolverDP.cpp
     sources/KnapsackSolverBnB.cpp
     sources/UnboundedKnapsackSolverBnB.cpp
     sources/UnboundedKnapsackSolverDP.cpp
+    sources/KnapsackSolverSA.cpp
     sources/KnapsackSolverGA.cpp
+    sources/KnapsackSolverHybrid.cpp
+    sources/Utils.cpp
+)
+
+add_executable(branch_and_bound
+    Methods/BranchNBound.cpp
+    ${SOLVERS}
+)
+
+add_executable(dynamic_programming
+    Methods/DynamicProgramming.cpp
+    ${SOLVERS}
+)
+
+add_executable(heuristics
+    Methods/Heuristics.cpp
+    ${SOLVERS}
+)
+
+add_executable(genetic_algorithm
+    Methods/GeneticAlgorithm.cpp
+    ${SOLVERS}
+)
+
+add_executable(simulated_annealing
+    Methods/SimulatedAnnealing.cpp
+    ${SOLVERS}
+)
+
+add_executable(hybrid_algorithm
+    Methods/HybridAlgorithm.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_branch_and_bound
+    Methods_benchmark/BranchNBound.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_dynamic_programming
+    Methods_benchmark/DynamicProgramming.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_heuristics
+    Methods_benchmark/Heuristics.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_genetic_algorithm
+    Methods_benchmark/GeneticAlgorithm.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_simulated_annealing
+    Methods_benchmark/SimulatedAnnealing.cpp
+    ${SOLVERS}
+)
+
+add_executable(benchmark_hybrid_algorithm
+    Methods_benchmark/HybridAlgorithm.cpp
+    ${SOLVERS}
 )
